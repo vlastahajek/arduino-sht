@@ -124,7 +124,7 @@ public:
   }
 
   /**
-   * Get the humidity in percent read from the last sample
+   * Get the temperature in Celsius read from the last sample
    * Use readSample() to trigger a new sensor reading
    */
   float getTemperature() const {
