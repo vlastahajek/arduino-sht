@@ -312,7 +312,7 @@ bool SHTSensor::init()
            i < sizeof(AUTO_DETECT_SENSORS) / sizeof(AUTO_DETECT_SENSORS[0]);
            ++i) {
         mSensorType = AUTO_DETECT_SENSORS[i];
-        delay(40);
+        delay(40); // TODO: this was necessary to make SHT4x autodetect work; revisit to find root cause
         if (init()) {
           detected = true;
           break;
