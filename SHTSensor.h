@@ -55,6 +55,7 @@ public:
     /** SHT3x-DIS with ADDR (sensor pin 2) connected to VDD */
     SHT3X_ALT,
     SHTC1,
+    SHTC3,
     SHTW1,
     SHTW2,
     SHT4X
@@ -79,7 +80,7 @@ public:
   static const float TEMPERATURE_INVALID;
   /**
    * Auto-detectable sensor types.
-   * Note that the SHTW1 and SHTW2 share exactly the same driver as the SHTC1
+   * Note that the SHTC3, SHTW1 and SHTW2 share exactly the same driver as the SHTC1
    * and are thus not listed individually.
    */
   static const SHTSensorType AUTO_DETECT_SENSORS[];

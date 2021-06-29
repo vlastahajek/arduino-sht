@@ -300,6 +300,7 @@ bool SHTSensor::init()
     case SHTW1:
     case SHTW2:
     case SHTC1:
+    case SHTC3:
       mSensor = new SHTC1Sensor();
       break;
     case SHT4X:

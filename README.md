@@ -3,6 +3,7 @@ Repository for Sensirion humidity and temperature sensor support on Arduino
 
 ## Supported sensors:
 - SHTC1
+- SHTC3
 - SHTW1
 - SHTW2
 - SHT3x-DIS (I2C)
