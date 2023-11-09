@@ -11,6 +11,8 @@ Repository for Sensirion humidity and temperature sensor support on Arduino
 - SHT85
 - SHT4x
 
+For <code><a href="https://github.com/Sensirion/arduino-i2c-sht3x">sht3x</a></code> and <code><a href="https://github.com/Sensirion/arduino-i2c-sht4x">sht4x</a></code> there are specific drivers available in separate repositories.
+
 ## Installation
 
 The recommended way to install ```arduino-sht``` is through the Library
