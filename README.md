@@ -48,6 +48,19 @@ necessary:
 from the sensor, but return the values read last. To read a new sample, make
 sure to call `readSample()`
 
+### Using an custom or alternative I2C port/Wire instance
+
+Some Arduino boards have multiple predefined I2C ports; generally, the second port will be called `Wire1`.
+
+The `arduino-sht` library allows to use an alternative interface; to do so, pass the port you want to use as an argument to `sht.init()`, like this:
+```
+  if (sht.init(Wire1)) {
+      Serial.print("init(): success\n");
+  } else {
+      Serial.print("init(): failed\n");
+  }
+```
+
 ## Example projects
 
 See example project
