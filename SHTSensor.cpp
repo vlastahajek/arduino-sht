@@ -40,9 +40,9 @@ SHTSensorDriver::~SHTSensorDriver()
 {
 }
 
-bool SHTSensorDriver::readSample()
+uint8_t SHTSensorDriver::readSample()
 {
-  return false;
+  return 0;
 }
 
 
@@ -52,7 +52,7 @@ bool SHTSensorDriver::readSample()
 
 const uint8_t SHTI2cSensor::EXPECTED_DATA_SIZE   = 6;
 
-bool SHTI2cSensor::readFromI2c(TwoWire & wire,
+uint8_t SHTI2cSensor::readFromI2c(TwoWire & wire,
                                uint8_t i2cAddress,
                                const uint8_t *i2cCommand,
                                uint8_t commandLength, uint8_t *data,
@@ -62,12 +62,12 @@ bool SHTI2cSensor::readFromI2c(TwoWire & wire,
   wire.beginTransmission(i2cAddress);
   for (int i = 0; i < commandLength; ++i) {
     if (wire.write(i2cCommand[i]) != 1) {
-      return false;
+      return 1;
     }
   }
 
   if (wire.endTransmission() != 0) {
-    return false;
+    return 2;
   }
 
   delay(duration);
@@ -76,13 +76,13 @@ bool SHTI2cSensor::readFromI2c(TwoWire & wire,
 
   // check if the same number of bytes are received that are requested.
   if (wire.available() != dataLength) {
-    return false;
+    return 3;
   }
 
   for (int i = 0; i < dataLength; ++i) {
     data[i] = wire.read();
   }
-  return true;
+  return 0;
 }
 
 uint8_t SHTI2cSensor::crc8(const uint8_t *data, uint8_t len, uint8_t crcInit)
@@ -106,7 +106,7 @@ uint8_t SHTI2cSensor::crc8(const uint8_t *data, uint8_t len, uint8_t crcInit)
 }
 
 
-bool SHTI2cSensor::readSample()
+uint8_t SHTI2cSensor::readSample()
 {
   uint8_t data[EXPECTED_DATA_SIZE];
   uint8_t cmd[mCmd_Size];
@@ -115,16 +115,17 @@ bool SHTI2cSensor::readSample()
   //is omitted for SHT4x Sensors
   cmd[1] = mI2cCommand & 0xff;
 
-  if (!readFromI2c(mWire, mI2cAddress, cmd, mCmd_Size, data,
-                   EXPECTED_DATA_SIZE, mDuration)) {
-    return false;
+  uint8_t err = readFromI2c(mWire, mI2cAddress, cmd, mCmd_Size, data,
+                   EXPECTED_DATA_SIZE, mDuration);
+  if (err) {
+    return err;
   }
 
   // -- Important: assuming each 2 byte of data is followed by 1 byte of CRC
 
   // check CRC for both RH and T
   if (crc8(&data[0], 2) != data[2] || crc8(&data[3], 2) != data[5]) {
-    return false;
+    return 4;
   }
 
   // convert to Temperature/Humidity
@@ -135,7 +136,7 @@ bool SHTI2cSensor::readSample()
   val = (data[3] << 8) + data[4];
   mHumidity = mX + mY * (val / mZ);
 
-  return true;
+  return 0;
 
 }
 
@@ -176,7 +177,7 @@ public:
   {
   }
 
-  bool readSample() override
+  uint8_t readSample() override
   {
     uint8_t data[EXPECTED_DATA_SIZE];
     uint8_t cmd[mCmd_Size];
@@ -191,16 +192,18 @@ public:
     cmd[1] = mI2cCommand & 0xff;
 
     // read T from SHT2x Sensor
-    if (!readFromI2c(mWire, mI2cAddress, cmd, mCmd_Size, data,
-                     EXPECTED_DATA_SIZE / 2, mDuration)) {
+    uint8_t err = readFromI2c(mWire, mI2cAddress, cmd, mCmd_Size, data,
+                     EXPECTED_DATA_SIZE / 2, mDuration);
+    if (err) {
       DEBUG_SHT("SHT2x readFromI2c(T) false\n");
-      return false;
+      return err;
     }
     // read RH from SHT2x Sensor
-    if (!readFromI2c(mWire, mI2cAddress, &cmd[1], mCmd_Size, &data[3],
-                     EXPECTED_DATA_SIZE / 2, mDuration)) {
+    err = readFromI2c(mWire, mI2cAddress, &cmd[1], mCmd_Size, &data[3],
+                     EXPECTED_DATA_SIZE / 2, mDuration);
+    if (err) {
       DEBUG_SHT("SHT2x readFromI2c(RH) false\n");
-      return false;
+      return err;
     }
 
     // -- Important: assuming each 2 byte of data is followed by 1 byte of CRC
@@ -208,14 +211,14 @@ public:
     // check CRC for both RH and T with a crc init value of 0
     if (crc8(&data[0], 2, 0) != data[2] || crc8(&data[3], 2, 0) != data[5]) {
       DEBUG_SHT("SHT2x crc8 false\n");
-      return false;
+      return 4;
     }
 
     // check status bits [1..0] (see datasheet)
     // bit 0: not used, bit 1: measurement type (0: temperature, 1 humidity)
     if (((data[1] & 0x02) != 0x00) || ((data[4] & 0x02) != 0x02)) {
       DEBUG_SHT("SHT2x status bits false\n");
-      return false;
+      return 5;
     }
 
     // convert to Temperature/Humidity
@@ -226,7 +229,7 @@ public:
     val = (data[3] << 8) + (data[4] & ~0x03); // get value and clear status bits [1..0]
     mHumidity = mX + mY * (val / mZ);
 
-    return true;
+    return 0;
   }
 };
 
@@ -363,7 +366,7 @@ const SHTSensor::SHTSensorType SHTSensor::AUTO_DETECT_SENSORS[] = {
 const float SHTSensor::TEMPERATURE_INVALID = NAN;
 const float SHTSensor::HUMIDITY_INVALID = NAN;
 
-bool SHTSensor::init(TwoWire & wire)
+uint8_t SHTSensor::init(TwoWire & wire)
 {
   if (mSensor != NULL) {
     cleanup();
@@ -417,13 +420,18 @@ bool SHTSensor::init(TwoWire & wire)
   return readSample();
 }
 
-bool SHTSensor::readSample()
+uint8_t SHTSensor::readSample()
 {
-  if (!mSensor || !mSensor->readSample())
-    return false;
+  if (!mSensor) {
+    return 10;
+  }
+  uint8_t err = mSensor->readSample();
+  if (err) {
+    return err;
+  }
   mTemperature = mSensor->mTemperature;
   mHumidity = mSensor->mHumidity;
-  return true;
+  return 0;
 }
 
 bool SHTSensor::setAccuracy(SHTAccuracy newAccuracy)

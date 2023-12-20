@@ -131,7 +131,7 @@ public:
    *
    * Returns true if communication with a sensor on the bus was successful, false otherwise
    */
-  bool init(TwoWire & wire = Wire);
+  uint8_t init(TwoWire & wire = Wire);
 
   /**
    * Read new values from the sensor
@@ -139,7 +139,7 @@ public:
    * values
    * Returns true if the sample was read and the values are cached
    */
-  bool readSample();
+  uint8_t readSample();
 
   /**
    * Get the relative humidity in percent read from the last sample
@@ -190,7 +190,7 @@ public:
   }
 
   /** Returns true if the next sample was read and the values are cached */
-  virtual bool readSample();
+  virtual uint8_t readSample();
 
   /**
    * Get the relative humidity in percent read from the last sample
@@ -246,7 +246,7 @@ public:
   {
   }
 
-  virtual bool readSample();
+  virtual uint8_t readSample();
 
   uint8_t mI2cAddress;
   uint16_t mI2cCommand;
@@ -264,7 +264,7 @@ private:
 
 protected:
   static uint8_t crc8(const uint8_t *data, uint8_t len, uint8_t crcInit = 0xff);
-  static bool readFromI2c(TwoWire & wire,
+  static uint8_t readFromI2c(TwoWire & wire,
                           uint8_t i2cAddress,
                           const uint8_t *i2cCommand,
                           uint8_t commandLength, uint8_t *data,
